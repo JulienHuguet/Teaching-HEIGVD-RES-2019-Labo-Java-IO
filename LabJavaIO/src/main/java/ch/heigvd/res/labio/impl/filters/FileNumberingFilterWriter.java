@@ -20,14 +20,14 @@ public class FileNumberingFilterWriter extends FilterWriter {
   private static final Logger LOG = Logger.getLogger(FileNumberingFilterWriter.class.getName());
 
   private int numberLines;
-  private char endChar;
-  private boolean firstLine;
+  private boolean endChar;
+
 
   public FileNumberingFilterWriter(Writer out) {
 
     super(out);
     numberLines = 0;
-    firstLine = true;
+    endChar = false;
   }
 
   @Override
@@ -46,23 +46,22 @@ public class FileNumberingFilterWriter extends FilterWriter {
   public void write(int c) throws IOException {
     char input = (char)c;
 
-    if(firstLine){
-      out.write(++numberLines + "\t");
-      firstLine = false;
+    if(numberLines == 0){
+      out.write(Integer.toString(++numberLines) + "\t");
     }
-    if(endChar == '\r'){
-      ++numberLines;
-      if(input == '\n'){
-        out.write("\n" + numberLines + "\t");
-        endChar = input;
-      }
-    }else if(input == '\n'){
-      ++numberLines;
-      out.write("\n" + numberLines + "\t");
-      endChar = input;
+    if(input == '\r') {
+      endChar = true;
+      out.write(input);
+    } else if( input == '\n'){
+      endChar = false;
+      out.write(input);
+      out.write(Integer.toString(++numberLines) + '\t');
+    } else if(endChar){
+      endChar = false;
+      out.write(Integer.toString(++numberLines) + '\t');
+      out.write(input);
     }else{
       out.write(input);
-      endChar = input;
     }
 
   }
